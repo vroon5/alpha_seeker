@@ -4,6 +4,7 @@
 *Track. Compete. Dominate with Real-Time Intelligence.*
 
 <img width="2346" height="1696" alt="image" src="https://github.com/user-attachments/assets/b8766f64-e5fd-4ddb-a126-2798a6e52545" />
+<img width="636" height="768" alt="image" src="https://github.com/user-attachments/assets/df4be46f-2269-4c93-9dad-57c1ed79da57" />
 <img width="2346" height="1696" alt="image" src="https://github.com/user-attachments/assets/91218f23-f650-438b-a274-a82b3ea307bf" />
 
 
