@@ -1,121 +1,158 @@
 
-import { GoogleGenAI } from "@google/genai";
-import { Stock } from '../types';
-import { MOCK_STOCKS } from './mockData';
+import { GoogleGenAI, Type } from "@google/genai";
+import { Stock, ChartDataPoint } from "../types";
 
-export interface StockQuoteResponse {
-  stock: Stock;
-  sources: { title: string; uri: string }[];
-}
-
-// Simple in-memory cache to prevent excessive API calls during a short window
-const SESSION_CACHE: Record<string, { data: StockQuoteResponse, timestamp: number }> = {};
-const CACHE_TTL = 30000; // 30 seconds
+const CACHE: Record<string, { price: number; change: number; timestamp: number }> = {};
+const CACHE_TTL = 1000 * 60 * 2; // 2 minutes cache
 
 /**
- * Fetches real-time stock data using Gemini with Google Search Grounding.
- * Targets reliable sources like Google Finance, Yahoo Finance, and Bloomberg.
+ * Fetches multiple real-time prices in a single batch to avoid rate limits and improve performance.
  */
-export const fetchStockQuote = async (ticker: string): Promise<StockQuoteResponse> => {
-  const upperTicker = ticker.toUpperCase();
+export const fetchPricesBatch = async (tickers: string[]): Promise<Record<string, { price: number; change: number }>> => {
+  if (tickers.length === 0) return {};
+  
+  const results: Record<string, { price: number; change: number }> = {};
+  const toFetch: string[] = [];
   const now = Date.now();
 
-  if (SESSION_CACHE[upperTicker] && (now - SESSION_CACHE[upperTicker].timestamp < CACHE_TTL)) {
-    return SESSION_CACHE[upperTicker].data;
-  }
+  tickers.forEach(t => {
+    const upper = t.toUpperCase();
+    if (CACHE[upper] && now - CACHE[upper].timestamp < CACHE_TTL) {
+      results[upper] = { price: CACHE[upper].price, change: CACHE[upper].change };
+    } else {
+      toFetch.push(upper);
+    }
+  });
+
+  if (toFetch.length === 0) return results;
 
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const prompt = `
-      Using Google Search, find the current REAL-TIME market price and daily percentage change for "${upperTicker}".
-      Verify the price against sources like Google Finance, Yahoo Finance, or the official exchange data.
-      
-      Return exactly this JSON structure:
-      {
-        "price": number,
-        "changePercent": number,
-        "name": "Full Company Name",
-        "lastUpdated": "string"
-      }
-      
-      The price should be a number, not a string. Use the most recent quote available.
-    `;
+    // Use a single prompt to fetch all needed prices
+    const prompt = `Search Google Finance and provide the current real-time stock price and today's percentage change for these tickers: ${toFetch.join(', ')}.
+    Return the data as a JSON object where the keys are the tickers.
+    Format: {"TICKER": {"price": number, "change": number}}.
+    Only return the JSON object.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
+        temperature: 0,
       }
     });
 
-    const text = response.text || '';
+    const text = response.text || "{}";
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     
-    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-    const sources = groundingChunks
-      .filter((chunk: any) => chunk.web)
-      .map((chunk: any) => ({
-        title: chunk.web.title,
-        uri: chunk.web.uri
-      }));
-
     if (jsonMatch) {
-      try {
-        const data = JSON.parse(jsonMatch[0].replace(/```json|```/g, ''));
-        if (data.price !== undefined) {
-           const res: StockQuoteResponse = {
-             stock: {
-               ticker: upperTicker,
-               name: data.name || `${upperTicker} Corp`,
-               price: Number(data.price),
-               changePercent: Number(data.changePercent || 0),
-               sector: 'Market'
-             },
-             sources: sources.slice(0, 3)
-           };
-           SESSION_CACHE[upperTicker] = { data: res, timestamp: now };
-           return res;
+      const data = JSON.parse(jsonMatch[0]);
+      Object.keys(data).forEach(ticker => {
+        const upper = ticker.toUpperCase();
+        if (data[ticker] && typeof data[ticker].price === 'number') {
+          const item = { 
+            price: Number(data[ticker].price), 
+            change: Number(data[ticker].change || 0) 
+          };
+          CACHE[upper] = { ...item, timestamp: now };
+          results[upper] = item;
         }
-      } catch (e) {
-        console.error("JSON parse error for ticker quote", upperTicker, e);
-      }
+      });
     }
   } catch (error) {
-    console.warn(`Real-time fetch failed for ${upperTicker}, falling back.`, error);
+    console.error("Batch price fetch failed:", error);
   }
 
-  // Fallback
-  const existing = MOCK_STOCKS.find(s => s.ticker === upperTicker);
-  const fallbackStock = existing || {
-    ticker: upperTicker,
-    name: `${upperTicker} Corp`,
-    price: 150.00,
-    changePercent: 0.00,
-    sector: 'Unknown'
-  };
+  return results;
+};
 
-  return { stock: fallbackStock, sources: [] };
+/**
+ * Fetches a single real-time price (Fallback/Convenience wrapper)
+ */
+export const fetchRealTimePrice = async (ticker: string): Promise<{ price: number; change: number }> => {
+  const batch = await fetchPricesBatch([ticker]);
+  return batch[ticker.toUpperCase()] || { price: 0, change: 0 };
+};
+
+/**
+ * Fetches comprehensive stock data and sources for search grounding display.
+ */
+export const fetchStockQuote = async (ticker: string): Promise<{ stock: Stock, sources: {title: string, uri: string}[] }> => {
+  const upperTicker = ticker.toUpperCase();
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const prompt = `Provide the current price, percentage change, and full company name for ${upperTicker} based on real-time data.
+    Also return grounding sources. Output JSON: {"price": number, "change": number, "name": "string"}`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: {
+        tools: [{ googleSearch: {} }]
+      }
+    });
+
+    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks
+      ?.filter(chunk => chunk.web)
+      .map((chunk: any) => ({
+        title: chunk.web.title || 'Source',
+        uri: chunk.web.uri || '#'
+      })) || [];
+
+    const text = response.text || "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    
+    let price = 0;
+    let change = 0;
+    let name = upperTicker;
+
+    if (jsonMatch) {
+      const data = JSON.parse(jsonMatch[0]);
+      price = Number(data.price) || 0;
+      change = Number(data.change) || 0;
+      name = data.name || upperTicker;
+    }
+
+    return {
+      stock: {
+        ticker: upperTicker,
+        name: name,
+        price: price,
+        changePercent: change
+      },
+      sources
+    };
+  } catch (error) {
+    console.error("Quote Error:", error);
+    return {
+      stock: { ticker: upperTicker, name: 'Market Asset', price: 0, changePercent: 0 },
+      sources: []
+    };
+  }
 };
 
 export const getLivePriceUpdate = (currentPrice: number): number => {
-  // Micro-fluctuations for UI dynamism between real API calls
-  const volatility = 0.0002;
-  const change = currentPrice * volatility * (Math.random() - 0.5);
-  return Number((currentPrice + change).toFixed(2));
+  return getLiveTick(currentPrice);
 };
 
-export const generateHistoricalData = (basePrice: number, points: number = 30) => {
-  const data = [];
-  let current = basePrice * 0.95;
-  for (let i = 0; i < points; i++) {
-    const volatility = 0.01;
-    current = current * (1 + (Math.random() * volatility - volatility/2));
+export const generateHistoricalData = (currentValue: number): ChartDataPoint[] => {
+  const data: ChartDataPoint[] = [];
+  const now = new Date();
+  const count = 20;
+  for (let i = count; i >= 0; i--) {
+    const time = new Date(now.getTime() - i * 1000 * 60 * 60 * 24);
+    const factor = 0.95 + (Math.random() * 0.1);
     data.push({
-      time: `T-${points-i}`,
-      value: Number(current.toFixed(2))
+      time: time.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      value: Number((currentValue * factor).toFixed(2))
     });
   }
-  data[data.length - 1].value = basePrice;
   return data;
+};
+
+export const getLiveTick = (price: number): number => {
+  if (price <= 0) return price;
+  const movement = price * 0.00015 * (Math.random() - 0.5);
+  return Number((price + movement).toFixed(2));
 };

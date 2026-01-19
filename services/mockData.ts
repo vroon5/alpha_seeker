@@ -1,110 +1,168 @@
-import { Stock, Portfolio, ChartDataPoint, GameRoom } from '../types';
 
-export const MOCK_STOCKS: Stock[] = [
-  { ticker: 'NVDA', name: 'NVIDIA Corp', price: 890.50, changePercent: 2.4 },
-  { ticker: 'TSLA', name: 'Tesla Inc', price: 175.30, changePercent: -1.2 },
-  { ticker: 'AAPL', name: 'Apple Inc', price: 169.80, changePercent: 0.5 },
-  { ticker: 'AMD', name: 'Adv Micro Devices', price: 180.20, changePercent: 3.1 },
-  { ticker: 'AMZN', name: 'Amazon.com', price: 180.10, changePercent: 1.1 },
-  { ticker: 'GOOGL', name: 'Alphabet Inc', price: 155.40, changePercent: 0.8 },
-  { ticker: 'MSFT', name: 'Microsoft Corp', price: 420.50, changePercent: 0.2 },
-  { ticker: 'COIN', name: 'Coinbase Global', price: 245.80, changePercent: 5.4 },
-];
+import { Portfolio, Contest, GameRoom } from '../types';
 
-export const MOCK_PORTFOLIOS: Portfolio[] = [
+export const INITIAL_PORTFOLIOS: Portfolio[] = [
   {
     id: 'p1',
     kolName: 'Sarah Tradez',
-    kolAvatar: 'https://picsum.photos/100/100?random=1',
+    kolAvatar: 'https://i.pravatar.cc/150?u=sarah',
+    isVerified: true,
     title: 'AI Revolution Only',
-    description: 'Betting big on the chip shortage recovery and AI infrastructure.',
-    stocks: [MOCK_STOCKS[0], MOCK_STOCKS[3], MOCK_STOCKS[6], MOCK_STOCKS[5]],
-    expiry: '1 Day',
-    totalReturn: 1.8,
+    description: 'Focused on the backbone of the AI boom.',
+    stocks: [
+      { ticker: 'NVDA', name: 'NVIDIA', price: 0, changePercent: 0 },
+      { ticker: 'AMD', name: 'AMD', price: 0, changePercent: 0 },
+      { ticker: 'MSFT', name: 'Microsoft', price: 0, changePercent: 0 },
+      { ticker: 'GOOGL', name: 'Alphabet', price: 0, changePercent: 0 },
+    ],
+    totalReturn: 0,
     backers: 1420,
-    isVerifiedKOL: true,
+    expiry: '1 Day',
+    roomId: 'gr1'
   },
   {
     id: 'p2',
     kolName: 'Crypto King',
-    kolAvatar: 'https://picsum.photos/100/100?random=2',
+    kolAvatar: 'https://i.pravatar.cc/150?u=crypto',
+    isVerified: true,
     title: 'High Volatility Plays',
-    description: 'Tech and crypto proxies for the brave.',
-    stocks: [MOCK_STOCKS[7], MOCK_STOCKS[1], MOCK_STOCKS[0], MOCK_STOCKS[3]],
-    expiry: '1 Month',
-    totalReturn: 12.4,
+    description: 'High risk tech and crypto proxies.',
+    stocks: [
+      { ticker: 'COIN', name: 'Coinbase', price: 0, changePercent: 0 },
+      { ticker: 'TSLA', name: 'Tesla', price: 0, changePercent: 0 },
+      { ticker: 'NVDA', name: 'NVIDIA', price: 0, changePercent: 0 },
+      { ticker: 'AMD', name: 'AMD', price: 0, changePercent: 0 },
+    ],
+    totalReturn: 0,
     backers: 850,
-    isVerifiedKOL: true,
+    expiry: '1 Month',
+    roomId: 'gr2'
+  },
+  {
+    id: 'p4',
+    kolName: 'Solar Steve',
+    kolAvatar: 'https://i.pravatar.cc/150?u=steve',
+    isVerified: true,
+    title: 'Sun & Wind Growth',
+    description: 'Riding the renewable energy wave.',
+    stocks: [
+      { ticker: 'FSLR', name: 'First Solar', price: 0, changePercent: 0 },
+      { ticker: 'ENPH', name: 'Enphase', price: 0, changePercent: 0 },
+      { ticker: 'NEE', name: 'NextEra', price: 0, changePercent: 0 },
+      { ticker: 'TSLA', name: 'Tesla', price: 0, changePercent: 0 },
+    ],
+    totalReturn: 0,
+    backers: 920,
+    expiry: '1 Week',
+    roomId: 'gr3'
+  },
+  {
+    id: 'p5',
+    kolName: 'DeepValue',
+    kolAvatar: 'https://i.pravatar.cc/150?u=deep',
+    isVerified: false,
+    title: 'Meme Lords Deluxe',
+    description: 'Diamond hands only. To the moon.',
+    stocks: [
+      { ticker: 'GME', name: 'GameStop', price: 0, changePercent: 0 },
+      { ticker: 'AMC', name: 'AMC', price: 0, changePercent: 0 },
+      { ticker: 'PLTR', name: 'Palantir', price: 0, changePercent: 0 },
+      { ticker: 'BB', name: 'BlackBerry', price: 0, changePercent: 0 },
+    ],
+    totalReturn: 0,
+    backers: 4500,
+    expiry: '1 Day',
+    roomId: 'gr2'
   },
   {
     id: 'p3',
     kolName: 'Value Victor',
-    kolAvatar: 'https://picsum.photos/100/100?random=3',
+    kolAvatar: 'https://i.pravatar.cc/150?u=victor',
+    isVerified: true,
     title: 'Safe Harbor Tech',
-    description: 'Mega cap stocks that print cash.',
-    stocks: [MOCK_STOCKS[2], MOCK_STOCKS[6], MOCK_STOCKS[4], MOCK_STOCKS[5]],
-    expiry: '1 Year',
-    totalReturn: 4.5,
+    description: 'Mega-cap stability for uncertain times.',
+    stocks: [
+      { ticker: 'AAPL', name: 'Apple', price: 0, changePercent: 0 },
+      { ticker: 'MSFT', name: 'Microsoft', price: 0, changePercent: 0 },
+      { ticker: 'AMZN', name: 'Amazon', price: 0, changePercent: 0 },
+      { ticker: 'GOOGL', name: 'Alphabet', price: 0, changePercent: 0 },
+    ],
+    totalReturn: 0,
     backers: 2100,
-    isVerifiedKOL: true,
+    expiry: '1 Year',
+    roomId: 'gr1'
+  }
+];
+
+export const CONTEST_LOBBY: Contest[] = [
+  {
+    id: 'c1',
+    title: 'Daily Sprint',
+    description: 'Fast-paced action. Highest intraday gainer wins.',
+    prize: '$1,000',
+    expiry: '1 Day',
+    color: 'bg-orange-600',
+    icon: 'Zap'
+  },
+  {
+    id: 'c2',
+    title: 'Monthly Marathon',
+    description: 'Strategy pays off. Best 30-day performance.',
+    prize: '$5,000',
+    expiry: '1 Month',
+    color: 'bg-blue-600',
+    icon: 'Trophy'
+  },
+  {
+    id: 'c3',
+    title: 'Legends League',
+    description: 'For the long-term visionaries. High stakes.',
+    prize: '$50,000',
+    expiry: '1 Year',
+    color: 'bg-purple-600',
+    icon: 'Crown'
   }
 ];
 
 export const MOCK_GAME_ROOMS: GameRoom[] = [
-    {
-        id: 'r1',
-        name: 'WallStreetBetz Elite',
-        description: 'High risk, high reward plays only. Verification required.',
-        memberCount: 1250,
-        portfolioCount: 45,
-        isPrivate: true,
-        avatar: 'https://picsum.photos/100/100?random=10'
-    },
-    {
-        id: 'r2',
-        name: 'Dividend Aristocrats',
-        description: 'Slow and steady wins the race. 3% yield min.',
-        memberCount: 340,
-        portfolioCount: 12,
-        isPrivate: false,
-        avatar: 'https://picsum.photos/100/100?random=11'
-    },
-    {
-        id: 'r3',
-        name: 'Tech Titans 2024',
-        description: 'Only companies with >$100B market cap.',
-        memberCount: 890,
-        portfolioCount: 28,
-        isPrivate: false,
-        avatar: 'https://picsum.photos/100/100?random=12'
-    },
-    {
-        id: 'r4',
-        name: 'Penny Stock Punks',
-        description: 'Sub $5 stocks only. Not for the faint of heart.',
-        memberCount: 2100,
-        portfolioCount: 67,
-        isPrivate: true,
-        avatar: 'https://picsum.photos/100/100?random=13'
-    }
-];
-
-// Helper to simulate live price ticks
-export const getSimulatedPriceUpdate = (price: number): number => {
-  const volatility = 0.002; // 0.2% movement max per tick
-  const change = price * volatility * (Math.random() - 0.5);
-  return Number((price + change).toFixed(2));
-};
-
-export const generateChartData = (points: number = 20, startPrice: number = 100): ChartDataPoint[] => {
-  const data: ChartDataPoint[] = [];
-  let currentPrice = startPrice;
-  for (let i = 0; i < points; i++) {
-    currentPrice = getSimulatedPriceUpdate(currentPrice);
-    data.push({
-      time: `${9 + Math.floor(i / 2)}:${i % 2 === 0 ? '00' : '30'}`,
-      value: currentPrice
-    });
+  {
+    id: 'gr1',
+    name: 'Tech Titans',
+    description: 'Exclusive circle for high-growth software and hardware enthusiasts.',
+    avatar: 'https://i.pravatar.cc/150?u=tech',
+    isPrivate: false,
+    memberCount: 5402,
+    portfolioCount: 2,
+    contestId: 'c1'
+  },
+  {
+    id: 'gr2',
+    name: 'WallStreetBetz Elite',
+    description: 'High stakes, high energy. Only for those who can handle the heat.',
+    avatar: 'https://i.pravatar.cc/150?u=wsb',
+    isPrivate: true,
+    memberCount: 1205,
+    portfolioCount: 2,
+    contestId: 'c2'
+  },
+  {
+    id: 'gr3',
+    name: 'Green Energy Hub',
+    description: 'Focused on sustainable investing and future energy technologies.',
+    avatar: 'https://i.pravatar.cc/150?u=green',
+    isPrivate: false,
+    memberCount: 3210,
+    portfolioCount: 1,
+    contestId: 'c1'
+  },
+  {
+    id: 'gr4',
+    name: 'Dividend Kings',
+    description: 'The slow and steady path. Cash flow strategies for long-term holders.',
+    avatar: 'https://i.pravatar.cc/150?u=dividend',
+    isPrivate: false,
+    memberCount: 8900,
+    portfolioCount: 0,
+    contestId: 'c3'
   }
-  return data;
-};
+];

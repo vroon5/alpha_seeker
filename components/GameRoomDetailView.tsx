@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { GameRoom, Portfolio } from '../types';
 import PortfolioCard from './PortfolioCard';
@@ -10,8 +11,10 @@ interface GameRoomDetailViewProps {
   onJoin: (id: string) => void;
   onViewPortfolio: (portfolio: Portfolio) => void;
   onBackPortfolio: (id: string, amount: number) => void;
+  onBuildPortfolio?: () => void;
   userBalance: number;
   backedIds: string[];
+  isJoined?: boolean;
 }
 
 const GameRoomDetailView: React.FC<GameRoomDetailViewProps> = ({ 
@@ -21,8 +24,10 @@ const GameRoomDetailView: React.FC<GameRoomDetailViewProps> = ({
     onJoin, 
     onViewPortfolio, 
     onBackPortfolio,
+    onBuildPortfolio,
     userBalance,
-    backedIds
+    backedIds,
+    isJoined
 }) => {
   return (
     <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
@@ -68,12 +73,27 @@ const GameRoomDetailView: React.FC<GameRoomDetailViewProps> = ({
                  </div>
              </div>
              
-             <button 
-                onClick={() => onJoin(room.id)}
-                className="bg-white text-black hover:bg-gray-200 font-bold px-8 py-3 rounded-xl transition-colors shadow-lg shadow-white/10 whitespace-nowrap"
-             >
-                {room.isPrivate ? 'Request Access' : 'Join Room'}
-             </button>
+             <div className="flex flex-col gap-2">
+                <button 
+                    onClick={() => onJoin(room.id)}
+                    disabled={isJoined}
+                    className={`font-bold px-8 py-3 rounded-xl transition-all shadow-lg whitespace-nowrap ${
+                        isJoined 
+                        ? 'bg-alpha-success/20 text-alpha-success border border-alpha-success/30' 
+                        : 'bg-white text-black hover:bg-gray-200 shadow-white/10'
+                    }`}
+                >
+                    {isJoined ? 'Member' : (room.isPrivate ? 'Request Access' : 'Join Room')}
+                </button>
+                {isJoined && onBuildPortfolio && (
+                    <button 
+                        onClick={onBuildPortfolio}
+                        className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2"
+                    >
+                        <Icons.Plus size={18} /> Build Portfolio
+                    </button>
+                )}
+             </div>
          </div>
          {/* Background Decor */}
          <div className="absolute top-0 right-0 w-64 h-64 bg-alpha-accent/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
@@ -84,18 +104,33 @@ const GameRoomDetailView: React.FC<GameRoomDetailViewProps> = ({
          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
              <Icons.Briefcase className="text-alpha-accent" /> Active Portfolios inside {room.name}
          </h2>
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {portfolios.map(portfolio => (
-                <PortfolioCard 
-                  key={portfolio.id} 
-                  portfolio={portfolio} 
-                  onBack={onBackPortfolio}
-                  isBacked={backedIds.includes(portfolio.id)}
-                  userBalance={userBalance}
-                  onView={onViewPortfolio}
-                />
-            ))}
-         </div>
+         {portfolios.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {portfolios.map(portfolio => (
+                    <PortfolioCard 
+                    key={portfolio.id} 
+                    portfolio={portfolio} 
+                    onBack={onBackPortfolio}
+                    isBacked={backedIds.includes(portfolio.id)}
+                    userBalance={userBalance}
+                    onView={onViewPortfolio}
+                    />
+                ))}
+            </div>
+         ) : (
+            <div className="py-20 text-center border border-dashed border-gray-700 rounded-2xl bg-gray-900/20">
+                <Icons.Briefcase size={40} className="mx-auto text-gray-700 mb-4 opacity-50" />
+                <p className="text-gray-500 font-medium">No portfolios have been created in this room yet.</p>
+                {isJoined && (
+                    <button 
+                        onClick={onBuildPortfolio}
+                        className="mt-4 text-blue-400 font-bold hover:underline"
+                    >
+                        Be the first to create one!
+                    </button>
+                )}
+            </div>
+         )}
       </div>
     </div>
   );
