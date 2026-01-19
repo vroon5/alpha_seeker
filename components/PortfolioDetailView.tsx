@@ -35,53 +35,61 @@ const PortfolioDetailView: React.FC<PortfolioDetailViewProps> = ({ portfolio, on
 
   return (
     <div className="animate-in fade-in duration-500">
-      <button onClick={onBack} className="flex items-center gap-2 text-gray-400 hover:text-white mb-6">
-        <Icons.TrendingDown className="rotate-90" size={16} />
+      <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-white mb-6 group transition-colors">
+        <div className="p-1.5 rounded-full bg-slate-800 group-hover:bg-alpha-accent/20">
+          <Icons.TrendingDown className="rotate-90" size={16} />
+        </div>
         <span className="font-bold text-sm">Back to Feed</span>
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-alpha-card border border-gray-700 rounded-2xl p-8">
+          <div className="bg-alpha-card border border-slate-800 rounded-2xl p-8 shadow-2xl">
             <div className="flex justify-between items-start mb-8">
               <div className="flex gap-4">
-                <img src={portfolio.kolAvatar} alt={portfolio.kolName} className="w-16 h-16 rounded-full border-2 border-alpha-accent" />
+                <img src={portfolio.kolAvatar} alt={portfolio.kolName} className="w-16 h-16 rounded-full border-2 border-alpha-accent shadow-lg shadow-alpha-accent/10" />
                 <div>
                   <h1 className="text-3xl font-bold text-white mb-1">{portfolio.title}</h1>
-                  <p className="text-gray-400">Curated by <span className="text-white font-bold">{portfolio.kolName}</span></p>
+                  <p className="text-slate-400">Curated by <span className="text-white font-bold">{portfolio.kolName}</span></p>
                 </div>
               </div>
               <div className="text-right">
                 <div className={`text-3xl font-bold ${portfolio.totalReturn >= 0 ? 'text-alpha-success' : 'text-alpha-danger'}`}>
                   {portfolio.totalReturn >= 0 ? '+' : ''}{portfolio.totalReturn}%
                 </div>
-                <div className="text-xs text-gray-500 uppercase font-bold">Real-Time Performance</div>
+                <div className="text-xs text-slate-500 uppercase font-bold tracking-widest">Real-Time Delta</div>
               </div>
             </div>
 
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                   <XAxis hide />
-                  <YAxis orientation="right" tick={{fill: '#9ca3af'}} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{backgroundColor: '#1e293b', border: 'none', borderRadius: '12px'}} />
-                  <Area type="monotone" dataKey="value" stroke={portfolio.totalReturn >= 0 ? '#10b981' : '#ef4444'} fillOpacity={0.1} fill={portfolio.totalReturn >= 0 ? '#10b981' : '#ef4444'} />
+                  <YAxis orientation="right" tick={{fill: '#64748b', fontSize: 10}} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{backgroundColor: '#020617', border: '1px solid #1e293b', borderRadius: '12px'}} />
+                  <Area 
+                    type="monotone" 
+                    dataKey="value" 
+                    stroke={portfolio.totalReturn >= 0 ? '#0ea5e9' : '#f97316'} 
+                    fillOpacity={0.1} 
+                    fill={portfolio.totalReturn >= 0 ? '#0ea5e9' : '#f97316'} 
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="bg-alpha-card border border-gray-700 rounded-2xl p-6">
+          <div className="bg-alpha-card border border-slate-800 rounded-2xl p-6">
             <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                 <Icons.Briefcase className="text-alpha-gold" /> Strategy Components
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {portfolio.stocks.map(stock => (
-                <div key={stock.ticker} className="bg-gray-800 p-4 rounded-xl border border-gray-700 flex justify-between items-center">
+                <div key={stock.ticker} className="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center group hover:border-alpha-accent/30 transition-all">
                   <div>
-                    <div className="font-bold text-white text-lg font-mono">{stock.ticker}</div>
-                    <div className="text-xs text-gray-500">{stock.name}</div>
+                    <div className="font-bold text-white text-lg font-mono group-hover:text-alpha-accent transition-colors">{stock.ticker}</div>
+                    <div className="text-xs text-slate-500">{stock.name}</div>
                   </div>
                   <div className="text-right">
                     <div className="font-bold text-white font-mono">${stock.price.toFixed(2)}</div>
@@ -92,37 +100,36 @@ const PortfolioDetailView: React.FC<PortfolioDetailViewProps> = ({ portfolio, on
                 </div>
               ))}
             </div>
-            <p className="mt-6 text-[10px] text-gray-500 italic text-center">Data verified via Google Finance and Yahoo Finance search grounding.</p>
           </div>
         </div>
 
         <div className="space-y-6">
-          <div className="bg-indigo-900/20 border border-indigo-500/30 rounded-2xl p-6">
-             <div className="flex items-center gap-2 mb-4 text-indigo-400 font-bold">
+          <div className="bg-alpha-accent/10 border border-alpha-accent/30 rounded-2xl p-6 shadow-lg shadow-alpha-accent/5">
+             <div className="flex items-center gap-2 mb-4 text-alpha-accent font-bold">
                 <Icons.Zap size={20} /> AI Strategy Review
              </div>
              {!digest ? (
                 <button 
                   onClick={handleGenerateDigest} disabled={loadingDigest}
-                  className="w-full bg-indigo-600 py-3 rounded-xl font-bold hover:bg-indigo-500"
+                  className="w-full bg-alpha-accent py-3 rounded-xl font-bold text-slate-950 hover:bg-alpha-accent/90 transition-all"
                 >
-                  {loadingDigest ? 'Analyzing Real Data...' : 'Generate AI News Digest'}
+                  {loadingDigest ? 'Analyzing Live Data...' : 'Generate AI News Digest'}
                 </button>
              ) : (
-                <p className="text-sm text-gray-300 leading-relaxed italic">"{digest}"</p>
+                <p className="text-sm text-slate-300 leading-relaxed italic border-l-2 border-alpha-accent pl-4">"{digest}"</p>
              )}
           </div>
 
-          <div className="bg-alpha-card border border-gray-700 rounded-2xl p-8">
+          <div className="bg-alpha-card border border-slate-800 rounded-2xl p-8 shadow-xl">
               {!isBacked ? (
                   !isWagering ? (
-                    <button onClick={() => setIsWagering(true)} className="w-full bg-alpha-success py-4 rounded-xl font-bold text-lg">Back Strategy</button>
+                    <button onClick={() => setIsWagering(true)} className="w-full bg-alpha-success py-4 rounded-xl font-bold text-lg text-slate-950 hover:bg-alpha-success/90 shadow-lg shadow-alpha-success/10 active:scale-[0.98] transition-all">Back Strategy</button>
                   ) : (
-                    <div className="space-y-4">
-                        <input type="number" value={wagerAmount} onChange={(e)=>setWagerAmount(e.target.value)} className="w-full bg-gray-900 p-3 rounded-xl font-bold border border-gray-600" />
+                    <div className="space-y-4 animate-in zoom-in-95">
+                        <input type="number" value={wagerAmount} onChange={(e)=>setWagerAmount(e.target.value)} className="w-full bg-slate-950 p-3 rounded-xl font-bold border border-slate-700 text-white outline-none focus:border-alpha-accent" />
                         <div className="flex gap-2">
-                            <button onClick={()=>setIsWagering(false)} className="flex-1 bg-gray-800 py-3 rounded-xl font-bold">Cancel</button>
-                            <button onClick={() => { onWager(portfolio.id, Number(wagerAmount)); setIsWagering(false); }} className="flex-1 bg-alpha-success py-3 rounded-xl font-bold">Confirm</button>
+                            <button onClick={()=>setIsWagering(false)} className="flex-1 bg-slate-800 py-3 rounded-xl font-bold hover:bg-slate-700">Cancel</button>
+                            <button onClick={() => { onWager(portfolio.id, Number(wagerAmount)); setIsWagering(false); }} className="flex-1 bg-alpha-success py-3 rounded-xl font-bold text-slate-950">Confirm</button>
                         </div>
                     </div>
                   )

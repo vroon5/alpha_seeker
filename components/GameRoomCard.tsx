@@ -18,8 +18,8 @@ const GameRoomCard: React.FC<GameRoomCardProps> = ({ room, onJoin, onView, isJoi
 
     const getContestLabel = () => {
         switch (room.contestId) {
-            case 'c1': return { label: 'Daily', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' };
-            case 'c2': return { label: 'Monthly', color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' };
+            case 'c1': return { label: 'Daily', color: 'bg-alpha-accent/20 text-alpha-accent border-alpha-accent/30' };
+            case 'c2': return { label: 'Monthly', color: 'bg-alpha-success/20 text-alpha-success border-alpha-success/30' };
             case 'c3': return { label: 'Yearly', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' };
             default: return null;
         }
@@ -30,7 +30,7 @@ const GameRoomCard: React.FC<GameRoomCardProps> = ({ room, onJoin, onView, isJoi
     return (
         <div 
             onClick={() => onView && onView(room)}
-            className="bg-alpha-card border border-gray-700 rounded-xl overflow-hidden hover:border-alpha-accent/50 transition-all duration-300 group cursor-pointer hover:shadow-xl hover:shadow-black/50 p-4 relative"
+            className="bg-alpha-card border border-slate-800 rounded-xl overflow-hidden hover:border-alpha-accent/50 transition-all duration-300 group cursor-pointer hover:shadow-xl hover:shadow-black/50 p-4 relative"
         >
             {contestInfo && (
                 <div className={`absolute top-4 right-4 px-2 py-0.5 rounded-full text-[10px] font-bold border ${contestInfo.color}`}>
@@ -39,12 +39,12 @@ const GameRoomCard: React.FC<GameRoomCardProps> = ({ room, onJoin, onView, isJoi
             )}
 
             <div className="flex justify-between items-start mb-4">
-                <img src={room.avatar} alt={room.name} className="w-12 h-12 rounded-xl object-cover border border-gray-600" />
+                <img src={room.avatar} alt={room.name} className="w-12 h-12 rounded-xl object-cover border border-slate-700" />
             </div>
             
             <div className="mb-2">
                 {room.isPrivate ? (
-                     <div className="inline-flex items-center gap-1 px-2 py-1 bg-gray-800 rounded-md text-[9px] text-gray-400 font-bold uppercase tracking-wider border border-gray-700 mb-1">
+                     <div className="inline-flex items-center gap-1 px-2 py-1 bg-slate-800 rounded-md text-[9px] text-slate-400 font-bold uppercase tracking-wider border border-slate-700 mb-1">
                         <Icons.Lock size={10} /> Private
                      </div>
                 ) : (
@@ -55,14 +55,13 @@ const GameRoomCard: React.FC<GameRoomCardProps> = ({ room, onJoin, onView, isJoi
                 <h3 className="font-bold text-white text-lg mb-1 group-hover:text-alpha-accent transition-colors">{room.name}</h3>
             </div>
             
-            <p className="text-sm text-gray-400 mb-4 line-clamp-2 h-10">{room.description}</p>
+            <p className="text-sm text-slate-400 mb-4 line-clamp-2 h-10">{room.description}</p>
             
-            <div className="flex justify-between items-center pt-3 border-t border-gray-700/50">
-                <div className="flex items-center gap-3 text-xs text-gray-400">
+            <div className="flex justify-between items-center pt-3 border-t border-slate-800/50">
+                <div className="flex items-center gap-3 text-xs text-slate-400">
                     <span className="flex items-center gap-1" title="Members"><Icons.Users size={12}/> {room.memberCount}</span>
                     
-                    {/* Suitcase Button / Indicator reflecting portfolio count */}
-                    <div className="flex items-center gap-1 bg-gray-800 px-2 py-1 rounded text-alpha-gold font-bold border border-gray-700 group-hover:border-alpha-gold/50 transition-colors">
+                    <div className="flex items-center gap-1 bg-slate-800 px-2 py-1 rounded text-alpha-gold font-bold border border-slate-700 group-hover:border-alpha-gold/50 transition-colors">
                         <Icons.Briefcase size={12}/> 
                         <span>{room.portfolioCount}</span>
                     </div>
@@ -70,10 +69,10 @@ const GameRoomCard: React.FC<GameRoomCardProps> = ({ room, onJoin, onView, isJoi
                 <button 
                     onClick={handleJoin}
                     disabled={isJoined}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors z-10 ${
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all z-10 ${
                         isJoined 
-                        ? 'bg-alpha-success/20 text-alpha-success cursor-default' 
-                        : 'bg-gray-700 hover:bg-white hover:text-black text-white'
+                        ? 'bg-alpha-success/20 text-alpha-success cursor-default border border-alpha-success/30' 
+                        : 'bg-slate-700 hover:bg-alpha-accent hover:text-slate-950 text-white'
                     }`}
                 >
                     {isJoined ? 'Joined' : (room.isPrivate ? 'Request' : 'Join')}
