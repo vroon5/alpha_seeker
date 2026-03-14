@@ -34,9 +34,27 @@ const App: React.FC = () => {
   const [backedIds, setBackedIds] = useState<string[]>([]);
   const [joinedRoomIds, setJoinedRoomIds] = useState<string[]>([]);
 
-  const syncPrices = useCallback(async () => {
+  const syncPrices = useCallback(async (force: boolean = false) => {
     if (isSyncing) return;
     setIsSyncing(true);
+    
+    // Use functional state to get latest tickers without adding them to dependencies
+    let tickersToFetch: string[] = [];
+    setPortfolios(prev => {
+      const pTickers = prev.flatMap(p => p.stocks.map(s => s.ticker));
+      setWatchlist(wPrev => {
+        const wTickers = wPrev.map(w => w.ticker);
+        tickersToFetch = Array.from(new Set([...pTickers, ...wTickers])) as string[];
+        return wPrev;
+      });
+      return prev;
+    });
+
+    // Small delay to ensure tickersToFetch is populated if needed, 
+    // but actually we can just derive them from the current state since we are in a callback.
+    // To avoid dependency loop, we'll use a ref or just accept the current state.
+    // Actually, let's just use a simpler approach: derive tickers from the state passed to the callback.
+    // But portfolios and watchlist ARE in the dependencies.
     
     const uniqueTickers = Array.from(new Set([
       ...portfolios.flatMap(p => p.stocks.map(s => s.ticker)),
@@ -44,7 +62,7 @@ const App: React.FC = () => {
     ])) as string[];
 
     try {
-      const priceMap = await fetchPricesBatch(uniqueTickers);
+      const priceMap = await fetchPricesBatch(uniqueTickers, force);
 
       setPortfolios(prev => prev.map(p => {
         const updatedStocks = p.stocks.map(s => {
@@ -83,9 +101,18 @@ const App: React.FC = () => {
   }, [isSyncing, portfolios, watchlist]);
 
   useEffect(() => {
-    syncPrices();
+    syncPrices(true); // Force sync on mount
   }, []);
 
+  // Periodic real sync from API
+  useEffect(() => {
+    const interval = setInterval(() => {
+      syncPrices(true); // Force refresh from API every 45 seconds
+    }, 45000);
+    return () => clearInterval(interval);
+  }, [syncPrices]);
+
+  // Visual ticks for "live" feel
   useEffect(() => {
     const interval = setInterval(() => {
       setPortfolios(prev => prev.map(p => ({

@@ -3,12 +3,12 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Stock, ChartDataPoint } from "../types";
 
 const CACHE: Record<string, { price: number; change: number; timestamp: number }> = {};
-const CACHE_TTL = 1000 * 60 * 2; // 2 minutes cache
+const CACHE_TTL = 1000 * 15; // 15 seconds cache for "most recent" feel
 
 /**
  * Fetches multiple real-time prices in a single batch to avoid rate limits and improve performance.
  */
-export const fetchPricesBatch = async (tickers: string[]): Promise<Record<string, { price: number; change: number }>> => {
+export const fetchPricesBatch = async (tickers: string[], force: boolean = false): Promise<Record<string, { price: number; change: number }>> => {
   if (tickers.length === 0) return {};
   
   const results: Record<string, { price: number; change: number }> = {};
@@ -17,7 +17,7 @@ export const fetchPricesBatch = async (tickers: string[]): Promise<Record<string
 
   tickers.forEach(t => {
     const upper = t.toUpperCase();
-    if (CACHE[upper] && now - CACHE[upper].timestamp < CACHE_TTL) {
+    if (!force && CACHE[upper] && now - CACHE[upper].timestamp < CACHE_TTL) {
       results[upper] = { price: CACHE[upper].price, change: CACHE[upper].change };
     } else {
       toFetch.push(upper);
@@ -28,14 +28,15 @@ export const fetchPricesBatch = async (tickers: string[]): Promise<Record<string
 
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    // Use a single prompt to fetch all needed prices
-    const prompt = `Search Google Finance and provide the current real-time stock price and today's percentage change for these tickers: ${toFetch.join(', ')}.
+    // Use a single prompt to fetch all needed prices with strict real-time requirement
+    const prompt = `Get the ABSOLUTE LATEST, MOST RECENT real-time stock price and today's percentage change for these tickers from Google Finance or Yahoo Finance: ${toFetch.join(', ')}.
+    It is critical that these are the most up-to-date prices available right now.
     Return the data as a JSON object where the keys are the tickers.
     Format: {"TICKER": {"price": number, "change": number}}.
-    Only return the JSON object.`;
+    Only return the JSON object, no other text.`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3.1-pro-preview', // Using Pro for better extraction accuracy
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
@@ -82,11 +83,12 @@ export const fetchStockQuote = async (ticker: string): Promise<{ stock: Stock, s
   const upperTicker = ticker.toUpperCase();
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    const prompt = `Provide the current price, percentage change, and full company name for ${upperTicker} based on real-time data.
+    const prompt = `Provide the ABSOLUTE LATEST, MOST RECENT real-time price, percentage change, and full company name for ${upperTicker}.
+    Use Google Finance or other reliable financial sources.
     Also return grounding sources. Output JSON: {"price": number, "change": number, "name": "string"}`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3.1-pro-preview',
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }]
